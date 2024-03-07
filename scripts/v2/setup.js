@@ -2,11 +2,11 @@ const hre = require("hardhat");
 
 const contractAddress = require('./address');
 
-const addresses = require('../addresses_shuffled.json');
+const addresses = require('../../addresses_shuffled.json');
 
 (async () => {
-  const ZonicQuests1Raffle = await hre.ethers.getContractFactory("ZonicQuests1Raffle");
-  const zonicQuests1Raffle = await ZonicQuests1Raffle.attach(contractAddress);
+  const ZonicQuests1RaffleV2 = await hre.ethers.getContractFactory("ZonicQuests1RaffleV2");
+  const zonicQuests1RaffleV2 = await ZonicQuests1RaffleV2.attach(contractAddress);
 
   const [owner] = await hre.ethers.getSigners();
 
@@ -15,7 +15,7 @@ const addresses = require('../addresses_shuffled.json');
   let candidateIds = []
   let weights = []
 
-  let skipTo = 690
+  let skipTo = -1
   let startIndex = 0
   if (skipTo >= 0) {
     for (let i = 0; i < addresses.length; i++) {
@@ -30,7 +30,7 @@ const addresses = require('../addresses_shuffled.json');
   for (let i = startIndex; i < addresses.length; i++) {
     if (candidateIds.length >= 100) {
       console.log(`- Submitting from ${candidateIds[0]} to ${candidateIds[candidateIds.length - 1]}`)
-      await zonicQuests1Raffle.addCandidates(candidateIds, weights);
+      await zonicQuests1RaffleV2.addCandidates(candidateIds, weights);
       candidateIds = []
       weights = []
     }
@@ -39,7 +39,7 @@ const addresses = require('../addresses_shuffled.json');
   }
   if (candidateIds.length > 0) {
     console.log(`- Submitting from ${candidateIds[0]} to ${candidateIds[candidateIds.length - 1]}`)
-    await zonicQuests1Raffle.addCandidates(candidateIds, weights);
+    await zonicQuests1RaffleV2.addCandidates(candidateIds, weights);
   }
 
   console.log("==== Done adding candidates ====")

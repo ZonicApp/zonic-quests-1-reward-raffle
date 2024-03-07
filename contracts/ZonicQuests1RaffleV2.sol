@@ -6,15 +6,13 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract ZonicQuests1Raffle is Ownable {
+contract ZonicQuests1RaffleV2 is Ownable {
   mapping(uint256 => uint256) private idExisted;
-  mapping(uint256 => uint256) private idPicked;
-  uint256[] private ids;
-  uint256[] private weightSum;
+  uint256[] public ids;
+  uint256[] public weights;
   uint256 public totalWeight = 0;
-  uint256 public idLeft = 0;
 
-  uint256[] private winnerIds;
+  uint256[] public winnerWeights;
 
   constructor() Ownable(msg.sender) {
   }
@@ -33,10 +31,7 @@ contract ZonicQuests1Raffle is Ownable {
         ids.push(_ids[i]);
         // Store the total weight, so we can do the binary search
         _totalWeight += _weights[i];
-        weightSum.push(_totalWeight);
-
-        // Add amount of possible winner ID left
-        idLeft++;
+        weights.push(_weights[i]);
     }
     totalWeight = _totalWeight;
   }
@@ -45,11 +40,7 @@ contract ZonicQuests1Raffle is Ownable {
     // Pick the winner by the weight
     uint256 randomValue;
     uint bitShifted = 256;
-    uint count = 0;
-    uint i = 0;
-    while (count < amount) {
-      i++;
-
+    for (uint i = 0; i < amount; i++) {
       if (bitShifted == 256) {
         randomValue = uint256(
           keccak256(
@@ -57,7 +48,6 @@ contract ZonicQuests1Raffle is Ownable {
               block.difficulty,
               blockhash(block.number - 1),
               tx.gasprice,
-              idLeft,
               i
             )
           )
@@ -67,69 +57,40 @@ contract ZonicQuests1Raffle is Ownable {
       }
 
       uint randomNum = uint32(randomValue >> bitShifted);
-      uint randomWeight = randomNum % totalWeight;
-      uint pickedIdIndex = __pickIdIndexFromRandomWeight(randomWeight);
+      winnerWeights.push(randomNum);
 
       bitShifted += 16;
-
-      if (idPicked[ids[pickedIdIndex]] == 1) {
-        i--;
-        continue;
-      }
-
-      count++;
-
-      winnerIds.push(ids[pickedIdIndex]);
-      idPicked[ids[pickedIdIndex]] = 1;
-
-      uint w = weightSum[pickedIdIndex];
-      if (pickedIdIndex > 0)
-        w = w - weightSum[pickedIdIndex - 1];
-
-      totalWeight = totalWeight - w;
-
-      for (uint j = pickedIdIndex; j < idLeft - 1; j++)
-        weightSum[j] = weightSum[j + 1] - w;
-
-      idLeft--;
     }
 
     // TODO: Implement logic to claim or distribute the reward based on the winner picked
   }
 
-  function __pickIdIndexFromRandomWeight(uint weight) private view returns (uint) {
-    uint left = 0;
-    uint right = idLeft;
-    while (left < right) {
-      uint mid = uint(left + right) / 2;
-      if (weightSum[mid] <= weight)
-        left = mid + 1;
-      else
-        right = mid;
-    }
-    return left;
-  }
-
-  function raffleWinnerIds() public view returns (uint256[] memory) {
-    uint256[] memory ret = new uint256[](winnerIds.length);
-    for (uint i = 0; i < winnerIds.length; i++)
-      ret[i] = winnerIds[i];
+  function raffleWinnerWeights() public view returns (uint256[] memory) {
+    uint256[] memory ret = new uint256[](winnerWeights.length);
+    for (uint i = 0; i < winnerWeights.length; i++)
+      ret[i] = winnerWeights[i];
     return ret;
   }
 
+  function totalIds() public view returns (uint256) {
+    return ids.length;
+  }
+
   function totalWinner() public view returns (uint256) {
-    return winnerIds.length;
+    return winnerWeights.length;
   }
 
-  function winnerLeft() public onlyOwner view returns (uint256) {
-    return idLeft;
+  function raffleIds() public view returns (uint256[] memory) {
+    uint256[] memory ret = new uint256[](ids.length);
+    for (uint i = 0; i < ids.length; i++)
+      ret[i] = ids[i];
+    return ret;
   }
 
-  function raffleWeightSum() public onlyOwner view returns (uint256[] memory) {
-    // return weightSum;
-    uint256[] memory ret = new uint256[](idLeft);
-    for (uint i = 0; i < idLeft; i++)
-      ret[i] = weightSum[i];
+  function raffleWeights() public view returns (uint256[] memory) {
+    uint256[] memory ret = new uint256[](weights.length);
+    for (uint i = 0; i < weights.length; i++)
+      ret[i] = weights[i];
     return ret;
   }
 

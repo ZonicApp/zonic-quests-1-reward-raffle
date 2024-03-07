@@ -10,7 +10,7 @@ The list of can be found in this [link](https://ipfs.io/ipfs/bafkreib5iycw3cosvr
 
 ## Steps
 
-The steps to pick winners will be done with the following steps:
+The process for selecting winners will be as follows:
 
 1) Deployment of a smart contract, `ZonicQuests1RaffleV2`, onto a blockchain.
 

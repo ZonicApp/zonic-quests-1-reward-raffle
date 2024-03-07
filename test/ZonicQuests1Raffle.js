@@ -45,6 +45,7 @@ describe("ZonicQuests1Raffle", function () {
     await contract.addCandidates([1, 4, 3], [100, 4, 23]);
     await contract.addCandidates([5, 2, 6], [20, 40, 10]);
     expect(await contract.winnerLeft()).to.be.equal(6)
+    expect(await contract.raffleTotalWeight()).to.be.equal(100 + 4 + 23 + 20 + 40 + 10)
   });
 
   it("ZonicQuests1Raffle: Should not be able to add candidate with duplicated id", async function () {
@@ -54,6 +55,7 @@ describe("ZonicQuests1Raffle", function () {
     await expect(contract.addCandidates([5, 2, 1], [20, 40, 10])).to.be.revertedWith('id already existed');
     await expect(contract.addCandidates([8, 16, 8], [20, 40, 10])).to.be.revertedWith('id already existed');
     expect(await contract.winnerLeft()).to.be.equal(3)
+    expect(await contract.raffleTotalWeight()).to.be.equal(100 + 4 + 23)
   });
 
   it("ZonicQuests1Raffle: Should not be able to add candidate with zero weight", async function () {
@@ -62,6 +64,7 @@ describe("ZonicQuests1Raffle", function () {
     await contract.addCandidates([1, 4, 3], [100, 4, 23]);
     await expect(contract.addCandidates([5, 2, 6], [0, 10, 20])).to.be.revertedWith('weight must be greater than zero');
     expect(await contract.winnerLeft()).to.be.equal(3)
+    expect(await contract.raffleTotalWeight()).to.be.equal(100 + 4 + 23)
   });
 
   it("ZonicQuests1Raffle: Should not be able to add candidate with unbalanced ids and weights", async function () {
@@ -71,5 +74,24 @@ describe("ZonicQuests1Raffle", function () {
     await expect(contract.addCandidates([5, 2, 7], [20, 40])).to.be.revertedWith('ids an weights must be in the equal length');
     await expect(contract.addCandidates([8, 16], [20, 40, 10])).to.be.revertedWith('ids an weights must be in the equal length');
     expect(await contract.winnerLeft()).to.be.equal(3)
+    expect(await contract.raffleTotalWeight()).to.be.equal(100 + 4 + 23)
+  });
+
+  it("ZonicQuests1Raffle: Should be able to pick winners successfully", async function () {
+    const [owner, otherAccount] = await ethers.getSigners();
+    const contract = await deployZonicQuests1RaffleContract();
+    await contract.addCandidates([1, 4, 3], [100, 4, 23]);
+    await contract.addCandidates([5, 2, 6], [20, 40, 10]);
+    await contract.addCandidates([100, 32, 60], [190, 1024, 50]);
+    expect(await contract.winnerLeft()).to.be.equal(9)
+    expect(await contract.raffleTotalWeight()).to.be.equal(100 + 4 + 23 + 20 + 40 + 10 + 190 + 1024 + 50)
+
+    const weights = await contract.raffleWeightSum();
+    expect(weights).to.deep.equal([100, 104, 127, 147, 187, 197, 387, 1411, 1461]);
+
+    await contract.pickWinners(6);
+    const winnerIds = await contract.raffleWinnerIds();
+    expect(winnerIds.length).to.be.equal(6)
+    expect((new Set(winnerIds)).size).to.be.equal(winnerIds.length); // No duplication
   });
 })

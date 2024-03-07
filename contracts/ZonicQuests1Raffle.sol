@@ -14,6 +14,8 @@ contract ZonicQuests1Raffle is Ownable {
   uint256 private totalWeight = 0;
   uint256 private idLeft = 0;
 
+  uint256[] private winnerIds;
+
   constructor() Ownable(msg.sender) {
   }
 
@@ -31,7 +33,7 @@ contract ZonicQuests1Raffle is Ownable {
         ids.push(_ids[i]);
         // Store the total weight, so we can do the binary search
         _totalWeight += _weights[i];
-        weightSum.push(_weights[i]);
+        weightSum.push(_totalWeight);
 
         // Add amount of possible winner ID left
         idLeft++;
@@ -40,12 +42,82 @@ contract ZonicQuests1Raffle is Ownable {
   }
 
   function pickWinners(uint256 amount) public onlyOwner {
-    // TODO: Pick the winner by the weight
+    // Pick the winner by the weight
+    uint256 randomValue;
+    uint bitShifted = 256;
+    uint count = 0;
+    uint i = 0;
+    while (count < amount) {
+      i++;
+
+      if (bitShifted == 256) {
+        randomValue = uint256(
+          keccak256(
+            abi.encode(
+              block.difficulty,
+              blockhash(block.number - 1),
+              tx.gasprice,
+              idLeft,
+              i
+            )
+          )
+        );
+
+        bitShifted = 0;
+      }
+
+      uint randomNum = uint32(randomValue >> bitShifted);
+      uint randomWeight = randomNum % totalWeight;
+      uint pickedId = __pickIdFromRandomWeight(randomWeight);
+
+      bitShifted += 16;
+
+      if (idPicked[pickedId] == 1) {
+        i--;
+        continue;
+      }
+
+      count++;
+
+      winnerIds.push(pickedId);
+      idPicked[pickedId] = 1;
+
+      idLeft--;
+    }
+
     // TODO: Implement logic to claim or distribute the reward based on the winner picked
+  }
+
+  function __pickIdFromRandomWeight(uint weight) private view returns (uint) {
+    uint left = 0;
+    uint right = ids.length;
+    while (left < right) {
+      uint mid = uint(left + right) / 2;
+      if (weightSum[mid] <= weight)
+        left = mid + 1;
+      else
+        right = mid;
+    }
+    return ids[left];
+  }
+
+  function raffleWinnerIds() public view returns (uint256[] memory) {
+    uint256[] memory ret = new uint256[](winnerIds.length);
+    for (uint i = 0; i < winnerIds.length; i++)
+      ret[i] = winnerIds[i];
+    return ret;
   }
 
   function winnerLeft() public onlyOwner view returns (uint256) {
     return idLeft;
+  }
+
+  function raffleWeightSum() public onlyOwner view returns (uint256[] memory) {
+    return weightSum;
+  }
+
+  function raffleTotalWeight() public onlyOwner view returns (uint256) {
+    return totalWeight;
   }
 
   /* Fail Safe Methods */

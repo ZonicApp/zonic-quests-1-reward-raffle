@@ -68,19 +68,28 @@ contract ZonicQuests1Raffle is Ownable {
 
       uint randomNum = uint32(randomValue >> bitShifted);
       uint randomWeight = randomNum % totalWeight;
-      uint pickedId = __pickIdFromRandomWeight(randomWeight);
+      uint pickedIdIndex = __pickIdIndexFromRandomWeight(randomWeight);
 
       bitShifted += 16;
 
-      if (idPicked[pickedId] == 1) {
+      if (idPicked[ids[pickedIdIndex]] == 1) {
         i--;
         continue;
       }
 
       count++;
 
-      winnerIds.push(pickedId);
-      idPicked[pickedId] = 1;
+      winnerIds.push(ids[pickedIdIndex]);
+      idPicked[ids[pickedIdIndex]] = 1;
+
+      uint w = weightSum[pickedIdIndex];
+      if (pickedIdIndex > 0)
+        w = w - weightSum[pickedIdIndex - 1];
+
+      totalWeight = totalWeight - w;
+
+      for (uint j = pickedIdIndex; j < idLeft - 1; j++)
+        weightSum[j] = weightSum[j + 1] - w;
 
       idLeft--;
     }
@@ -88,9 +97,9 @@ contract ZonicQuests1Raffle is Ownable {
     // TODO: Implement logic to claim or distribute the reward based on the winner picked
   }
 
-  function __pickIdFromRandomWeight(uint weight) private view returns (uint) {
+  function __pickIdIndexFromRandomWeight(uint weight) private view returns (uint) {
     uint left = 0;
-    uint right = ids.length;
+    uint right = idLeft;
     while (left < right) {
       uint mid = uint(left + right) / 2;
       if (weightSum[mid] <= weight)
@@ -98,7 +107,7 @@ contract ZonicQuests1Raffle is Ownable {
       else
         right = mid;
     }
-    return ids[left];
+    return left;
   }
 
   function raffleWinnerIds() public view returns (uint256[] memory) {
@@ -113,7 +122,11 @@ contract ZonicQuests1Raffle is Ownable {
   }
 
   function raffleWeightSum() public onlyOwner view returns (uint256[] memory) {
-    return weightSum;
+    // return weightSum;
+    uint256[] memory ret = new uint256[](idLeft);
+    for (uint i = 0; i < idLeft; i++)
+      ret[i] = weightSum[i];
+    return ret;
   }
 
   function raffleTotalWeight() public onlyOwner view returns (uint256) {

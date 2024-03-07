@@ -82,16 +82,22 @@ describe("ZonicQuests1Raffle", function () {
     const contract = await deployZonicQuests1RaffleContract();
     await contract.addCandidates([1, 4, 3], [100, 4, 23]);
     await contract.addCandidates([5, 2, 6], [20, 40, 10]);
-    await contract.addCandidates([100, 32, 60], [190, 1024, 50]);
+    await contract.addCandidates([100, 32, 60], [190, 240, 50]);
     expect(await contract.winnerLeft()).to.be.equal(9)
-    expect(await contract.raffleTotalWeight()).to.be.equal(100 + 4 + 23 + 20 + 40 + 10 + 190 + 1024 + 50)
+    expect(await contract.raffleTotalWeight()).to.be.equal(100 + 4 + 23 + 20 + 40 + 10 + 190 + 240 + 50)
 
     const weights = await contract.raffleWeightSum();
-    expect(weights).to.deep.equal([100, 104, 127, 147, 187, 197, 387, 1411, 1461]);
+    expect(weights).to.deep.equal([100, 104, 127, 147, 187, 197, 387, 627, 677]);
+
+    // console.log(await contract.raffleWeightSum());
 
     await contract.pickWinners(6);
     const winnerIds = await contract.raffleWinnerIds();
+    // console.log("Winners are ", winnerIds)
     expect(winnerIds.length).to.be.equal(6)
     expect((new Set(winnerIds)).size).to.be.equal(winnerIds.length); // No duplication
+
+    // console.log(await contract.raffleWeightSum());
+    // console.log(await contract.raffleTotalWeight());
   });
 })

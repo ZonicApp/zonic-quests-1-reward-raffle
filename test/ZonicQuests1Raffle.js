@@ -2,6 +2,8 @@ const { ethers, upgrades, waffle } = require("hardhat");
 const { expect } = require("chai");
 const chai = require('chai');
 
+const addresses = require('./addresses.json');
+
 describe("ZonicQuests1Raffle", function () {
   async function deployZonicQuests1RaffleContract() {
     const ZonicQuests1Raffle = await ethers.getContractFactory("ZonicQuests1Raffle");
@@ -89,15 +91,55 @@ describe("ZonicQuests1Raffle", function () {
     const weights = await contract.raffleWeightSum();
     expect(weights).to.deep.equal([100, 104, 127, 147, 187, 197, 387, 627, 677]);
 
-    // console.log(await contract.raffleWeightSum());
-
     await contract.pickWinners(6);
     const winnerIds = await contract.raffleWinnerIds();
-    // console.log("Winners are ", winnerIds)
     expect(winnerIds.length).to.be.equal(6)
     expect((new Set(winnerIds)).size).to.be.equal(winnerIds.length); // No duplication
+  });
 
-    // console.log(await contract.raffleWeightSum());
-    // console.log(await contract.raffleTotalWeight());
+  it("ZonicQuests1Raffle: Should be able to pick winners from real list successfully", async function () {
+    const [owner, otherAccount] = await ethers.getSigners();
+    const contract = await deployZonicQuests1RaffleContract();
+    let candidateIds = []
+    let weights = []
+
+    // Shuffle Inputs
+    shuffleArray(addresses);
+
+    // Calculate total weight
+    const expectedTotalWeight = addresses.reduce((acc, data) => acc += data.amount, 0)
+
+    // Add candidates
+    for (let i = 0; i < addresses.length; i++) {
+      if (candidateIds.length >= 100) {
+        await contract.addCandidates(candidateIds, weights);
+        candidateIds = []
+        weights = []
+      }
+      candidateIds.push(addresses[i].id)
+      weights.push(addresses[i].amount)
+    }
+    if (candidateIds.length > 0) {
+      await contract.addCandidates(candidateIds, weights);
+    }
+
+    // Check total weight
+    expect(await contract.raffleTotalWeight()).to.be.equal(expectedTotalWeight)
+
+    // Pick Winners
+    await contract.pickWinners(30);
+    await contract.pickWinners(30);
+    await contract.pickWinners(30);
+    await contract.pickWinners(30);
+    const winnerIds = await contract.raffleWinnerIds();
   });
 })
+
+function shuffleArray(array) {
+  for (var i = array.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var temp = array[i];
+      array[i] = array[j];
+      array[j] = temp;
+  }
+}

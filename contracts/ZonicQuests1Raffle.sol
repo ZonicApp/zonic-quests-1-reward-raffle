@@ -11,8 +11,8 @@ contract ZonicQuests1Raffle is Ownable {
   mapping(uint256 => uint256) private idPicked;
   uint256[] private ids;
   uint256[] private weightSum;
-  uint256 private totalWeight = 0;
-  uint256 private idLeft = 0;
+  uint256 public totalWeight = 0;
+  uint256 public idLeft = 0;
 
   uint256[] private winnerIds;
 

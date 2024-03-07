@@ -2,7 +2,7 @@ const { ethers, upgrades, waffle } = require("hardhat");
 const { expect } = require("chai");
 const chai = require('chai');
 
-const addresses = require('./addresses.json');
+const addresses = require('../addresses.json');
 
 describe("ZonicQuests1Raffle", function () {
   async function deployZonicQuests1RaffleContract() {

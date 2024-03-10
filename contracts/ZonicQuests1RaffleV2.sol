@@ -48,7 +48,8 @@ contract ZonicQuests1RaffleV2 is Ownable {
               block.difficulty,
               blockhash(block.number - 1),
               tx.gasprice,
-              i
+              i,
+              randomValue
             )
           )
         );

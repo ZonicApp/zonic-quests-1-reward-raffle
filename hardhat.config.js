@@ -18,6 +18,12 @@ module.exports = {
   },
   defaultNetwork: 'hardhat',
   networks: {
+    optimism: {
+      url: "https://mainnet.optimism.io/",
+      chainId: 10,
+      gasPrice: 1000000,
+      accounts: {mnemonic: mnemonic}
+    },
     optimismSepolia: {
       url: "https://sepolia.optimism.io/",
       chainId: 11155420,
@@ -27,9 +33,18 @@ module.exports = {
   },
   etherscan: {
     apiKey: {
+      optimism: process.env.OPTIMISM_ETHERSCAN_API_KEY,
       optimismSepolia: process.env.OPTIMISM_SEPOLIA_ETHERSCAN_API_KEY,
     },
     customChains: [
+      {
+        network: "optimism",
+        chainId: 10,
+        urls: {
+          apiURL: "https://api-optimistic.etherscan.io/api",
+          browserURL: "https://optimistic.etherscan.io/"
+        }
+      },
       {
         network: "optimismSepolia",
         chainId: 11155420,

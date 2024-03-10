@@ -2,6 +2,8 @@ const { ethers, upgrades, waffle } = require("hardhat");
 const { expect } = require("chai");
 const chai = require('chai');
 
+const { buildWeightSumArray, pickIndex, pickIndexTraditional } = require('../scripts/v2/utils');
+
 const addresses = require('../addresses.json');
 
 describe("ZonicQuests1RaffleV2", function () {
@@ -129,6 +131,23 @@ describe("ZonicQuests1RaffleV2", function () {
     await contract.pickWinners(30);
     const winnerWeights = await contract.raffleWinnerWeights();
   });
+
+  it("pickIndex and pickIndexTraditional should return the same result", async function () {
+    let ids = []
+    let weights = []
+    for (let i = 0; i < 1000; i++) {
+      ids.push(i + 1)
+      weights.push(Math.floor(Math.random() * 1000))
+    }
+
+    const weightSumArr = buildWeightSumArray(ids, weights)
+
+    for (let i = 0; i < 100; i++) {
+      pickedWeight = BigInt(Math.floor(Math.random() * weightSumArr[weightSumArr.length - 1]))
+      expect(pickIndex(weightSumArr, pickedWeight))
+        .to.be.equal(pickIndexTraditional(weights, pickedWeight))
+    }
+  })
 })
 
 function shuffleArray(array) {

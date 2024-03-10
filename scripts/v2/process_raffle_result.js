@@ -1,6 +1,8 @@
 const hre = require("hardhat");
 const fs = require("fs");
 
+const { buildWeightSumArray, pickIndex, pickIndexTraditional } = require('./utils');
+
 const contractAddress = require('./address');
 const addresses = require('../../addresses_shuffled.json');
 
@@ -16,8 +18,11 @@ const addresses = require('../../addresses_shuffled.json');
     addressOfId[data.id] = data.address
   })
 
+  // Fetch ids from the smart contract
   let ids = await zonicQuests1RaffleV2.raffleIds()
+  // Fetch weights from the smart contract
   let weights = await zonicQuests1RaffleV2.raffleWeights()
+  // Fetch weights drawn from smart contract
   const raffleWinnerWeights = await zonicQuests1RaffleV2.raffleWinnerWeights()
 
   const winnerIds = []
@@ -44,26 +49,3 @@ const addresses = require('../../addresses_shuffled.json');
   console.error(error);
   process.exitCode = 1;
 });
-
-function buildWeightSumArray(ids, weights) {
-  let sum = 0;
-  const result = []
-  for (let i = 0; i < weights.length; i++) {
-    sum += Number(weights[i])
-    result.push(sum)
-  }
-  return result
-}
-
-function pickIndex(weightSumArr, pickedWeight) {
-  let rand = Number(pickedWeight % BigInt(weightSumArr[weightSumArr.length - 1]))
-  let left = 0, right = weightSumArr.length - 1
-  while (left < right) {
-    let mid = Math.floor((left + right) / 2)
-    if (weightSumArr[mid] <= rand)
-      left = mid + 1
-    else
-      right = mid
-  }
-  return left
-}

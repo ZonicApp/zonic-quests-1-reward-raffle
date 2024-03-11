@@ -15,3 +15,5 @@ node_modules
 
 addresses_shuffled.json
 winners.json
+winners_logs.json
+winners_tickets.json

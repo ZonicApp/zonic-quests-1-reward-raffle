@@ -27,6 +27,8 @@ const addresses = require('../../addresses_shuffled.json');
 
   const winnerIds = []
   const winnerAddresses = []
+  const winnerTickets = []
+  const winnerLogs = []
 
   ids = [...ids]
   weights = [...weights]
@@ -38,12 +40,18 @@ const addresses = require('../../addresses_shuffled.json');
     const winnerId = Number(ids[winnerIndex])
     winnerIds.push(winnerId)
     winnerAddresses.push(addressOfId[winnerId])
+    winnerTickets.push(Number(weights[winnerIndex]))
+    winnerLogs.push({
+      winner_id: Number(ids[winnerIndex]),
+      winner_weight: Number(weights[winnerIndex]),
+      weight_sum: weightSumArr[weightSumArr.length - 1],
+    })
     ids.splice(winnerIndex, 1)
     weights.splice(winnerIndex, 1)
   }
-  // console.log(winnerIds)
-  // console.log(winnerAddresses)
   fs.writeFileSync('./winners.json', JSON.stringify(winnerAddresses, null, 2))
+  fs.writeFileSync('./winners_tickets.json', JSON.stringify(winnerTickets))
+  fs.writeFileSync('./winners_logs.json', JSON.stringify(winnerLogs, null, 2))
 })()
 .catch((error) => {
   console.error(error);

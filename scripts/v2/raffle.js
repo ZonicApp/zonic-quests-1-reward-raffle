@@ -18,7 +18,7 @@ const contractAddress = require('./address');
   
   let winnerWeights = await zonicQuests1RaffleV2.raffleWinnerWeights()
   while (winnerWeights.length < totalWinners) {
-    let amountToRaffle = Math.min(50, totalWinners - winnerWeights.length)
+    let amountToRaffle = Math.min(52, totalWinners - winnerWeights.length)
     console.log("- Raffing for " + amountToRaffle)
     await zonicQuests1RaffleV2.pickWinners(amountToRaffle)
     winnerWeights = await zonicQuests1RaffleV2.raffleWinnerWeights()

@@ -142,11 +142,22 @@ describe("ZonicQuests1RaffleV2", function () {
 
     const weightSumArr = buildWeightSumArray(ids, weights)
 
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 500; i++) {
       pickedWeight = BigInt(Math.floor(Math.random() * weightSumArr[weightSumArr.length - 1]))
       expect(pickIndex(weightSumArr, pickedWeight))
         .to.be.equal(pickIndexTraditional(weights, pickedWeight))
     }
+  })
+
+  it("pickIndex should return the correct result", async function () {
+    let ids = [18, 52, 46, 1, 7, 3]
+    let weights = [12, 1, 30, 5, 1, 6]
+    const weightSumArr = buildWeightSumArray(ids, weights)
+    expect(pickIndex(weightSumArr, 11n)).to.be.equal(0)
+    expect(pickIndex(weightSumArr, 12n)).to.be.equal(1)
+    expect(pickIndex(weightSumArr, 13n)).to.be.equal(2)
+    expect(pickIndex(weightSumArr, 54n)).to.be.equal(5)
+    expect(pickIndex(weightSumArr, 55n)).to.be.equal(0) // Mod
   })
 })
 
